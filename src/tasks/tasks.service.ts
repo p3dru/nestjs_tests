@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Task, TaskStatus } from './task.model';
 import { v4 as uuid } from 'uuid';
 import { createTaskDto } from './dto/create-task.dto';
+import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
 
 @Injectable()
 export class TasksService {
@@ -9,6 +10,31 @@ export class TasksService {
 
     getAllTasks(): Task[] {
       return this.tasks;
+    }
+
+    //aqui permite que passemos os filtros para a url no seguinte formato:
+    //http://localhost:3000/tasks?(filtro no if)=valor(para adicionar mais &(outro filtro no if)=valor)
+    //é importante colocar todos em lowercase para facilitar a pesquisa
+    getTasksWithFilters(filterDto: GetTasksFilterDto): Task[]{
+        const { status, search } = filterDto;
+
+        let tasks = this.getAllTasks();
+
+        if (status) {
+            tasks = tasks.filter((task) => task.status === status);
+        }
+
+        if (search){
+            tasks = tasks.filter((task) => {
+                if (task.title.toLowerCase().includes(search) || task.description.toLowerCase().includes(search)){
+                    return true
+                };
+
+                return false
+            });
+        }
+
+        return tasks;
     }
 
     //aqui, basicamente passamos um id para a arrow function procurar
